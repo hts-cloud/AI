@@ -1,0 +1,46 @@
+import pandas as pd
+import json
+
+def load_data(filepath):
+    """ Load data from a JSON file into a DataFrame. """
+    with open(filepath, 'r') as file:
+        data = json.load(file)
+    return pd.DataFrame(data)
+
+def clean_text(text):
+    """ Clean text data by removing extra spaces, converting to lowercase, and removing special characters. """
+    text = text.strip().replace('\n', ' ').replace('\r', '')  # Remove newline and return characters
+    text = ' '.join(text.split())  # Remove extra spaces
+    text = text.lower()  # Convert to lowercase
+    text = ''.join(char for char in text if char.isalnum() or char.isspace())  # Remove special characters
+    return text
+
+def clean_data(data):
+    """ Apply text cleaning to the 'content' column of the DataFrame. """
+    data['content'] = data['content'].apply(clean_text)
+    return data.dropna(subset=['content'])  # Drop any rows where 'content' is NaN
+
+def save_data(data, filepath):
+    """ Save the DataFrame to a JSON file. """
+    data.to_json(filepath, orient='records', lines=True)
+
+def main():
+    # Path to the JSON file with the original scraped data
+    input_filepath = 'website_content.json'
+    # Path to save the cleaned data
+    output_filepath = 'cleaned_content.json'
+    
+    # Load data
+    data = load_data(input_filepath)
+    
+    # Clean data
+    cleaned_data = clean_data(data)
+    
+    # Save cleaned data
+    save_data(cleaned_data, output_filepath)
+    
+    print("Data cleaning complete. Cleaned data saved to:", output_filepath)
+
+if __name__ == '__main__':
+    main()
+

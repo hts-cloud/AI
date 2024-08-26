@@ -1,0 +1,70 @@
+import requests
+from bs4 import BeautifulSoup
+import json
+import warnings
+
+warnings.filterwarnings("ignore")
+
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+}
+
+# Base URL for constructing full URLs for specific conditions
+base_url = 'https://www.allergyaffiliates.com/'
+
+# List of specific conditions extracted or manually defined
+conditions = [
+    "Asthma",
+    "Chronic Cough",
+    "Insect Allergy",
+    "Severe Allergic Reactions",
+    "Eczema",
+    "Allergic Rhinitis",
+    "Non-allergic Rhinitis",
+    "Sinusitis",
+    "Drug Allergy and Intolerances",
+    "Exercise-Induced Asthma",
+    "Nasal Polyps",
+    "Sinus Headaches",
+    "Allergy Immunotherapy",
+    "Shortness of Breath",
+    "Contact Dermatitis",
+    "Nasal Obstruction"
+]
+
+# Convert condition names to URL slugs
+url_suffixes = [condition.replace(' ', '-').lower() for condition in conditions]
+condition_urls = [base_url + suffix for suffix in url_suffixes]
+
+# Additional fixed pages
+additional_urls = [
+    "https://www.allergyaffiliates.com/our-doctors",
+    "https://www.allergyaffiliates.com/services",
+    "https://www.allergyaffiliates.com/blog",
+    "https://www.allergyaffiliates.com/contact-best-allergists-florida",
+    "https://www.allergyaffiliates.com/allergy-injection-hours",
+    "https://www.allergyaffiliates.com/information",  # Note: Includes multiple anchors; consider scraping the whole page
+    "https://www.allergyaffiliates.com/patient-education-videos",
+]
+
+# Combine all URLs
+urls = condition_urls + additional_urls
+
+all_text_data = []
+
+for url in urls:
+    response = requests.get(url, headers=headers)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Extract text from paragraph and list tags, and headings
+    texts = [tag.text.strip() for tag in soup.find_all(['p', 'li', 'h1', 'h2', 'h3']) if tag.text.strip() != '']
+    all_text_data.extend(texts)
+
+    print(f"Scraped {len(texts)} items from {url}")
+
+data = {'content': all_text_data}
+
+# Save data to a JSON file
+with open('website_content.json', 'w') as f:
+    json.dump(data, f)
+
